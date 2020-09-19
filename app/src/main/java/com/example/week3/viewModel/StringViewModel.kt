@@ -9,8 +9,12 @@ import com.example.week3.repository.Irepository
 class StringViewModel(private val repository: Irepository): ViewModel(){
     private val requestLogin = MutableLiveData<Result<LoginData>>()
 
-    val loginIf =Transformations.switchMap(requestLogin){
+    val loginIf: LiveData<LoginData>? = Transformations.switchMap(requestLogin){
         it.data
+    }
+
+    val networkState = Transformations.switchMap(requestLogin){
+        it.networkState
     }
 
     fun getLoginIf(username : String, pass : String, fcm : String)

@@ -3,9 +3,11 @@ package com.example.week3.ui.login
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.text.method.PasswordTransformationMethod
 import android.util.Log
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.example.week2.di.Injection
 import com.example.week3.R
@@ -23,19 +25,32 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login_account)
 
-        loginViewModel =viewModel()
+        addEvent()
+        bt_login_email.setOnClickListener(this)
+        ib_login_back.setOnClickListener(this)
+        loginViewModel = viewModel()
         bindViewModel()
     }
 
-    override fun onClick(p0: View?) {
-        if(p0!=null)
+    override fun onClick(view: View?) {
+        if(view != null)
         {
-            when(p0.id)
+            when(view.id)
             {
-                R.id.bt_login-> logIn()
+                R.id.ib_login_back->
+                {
+                    val intent = Intent(this@LoginActivity, RegisterActivity::class.java)
+                    startActivity(intent)
+                }
+                R.id.bt_login_email-> logIn()
             }
         }
     }
+
+    private fun addEvent() {
+        ed_login_email_password_edittext.transformationMethod = PasswordTransformationMethod.getInstance()
+    }
+
     fun logIn(){
         if(tv_login_email_emailname.text.isNullOrBlank() || tv_login_email_password.text.isNullOrBlank())
         {
@@ -46,20 +61,25 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
                         Log.w("failed", task.exception)
                         return@OnCompleteListener
                     }
-                    val email : String = tv_login_email_emailname.text.toString()
-                    val password :String = tv_login_email_password.text.toString()
+                    val email : String = ed_login_email_emailname_edittext.text.toString()
+                    val password :String = ed_login_email_password_edittext.text.toString()
                     val token: String = task.result?.token.toString()
                     loginViewModel.getLoginIf(email, password, token)
                 })
         }
     }
-    fun bindViewModel(){
-        loginViewModel.loginIf.observe(this, {
+
+    private fun bindViewModel(){
+        loginViewModel.loginIf?.observe(this, {
             logindata.apply { logindata = it }
             val accessToken = logindata.SignInData?.accessToken
             saveAccessToken(accessToken)
             val intent = Intent(this@LoginActivity, SelectActivity::class.java)
             startActivity(intent)
+        })
+
+        loginViewModel.networkState.observe(this, Observer {
+            Log.d("Lingard", it.toString())
         })
     }
     private fun saveAccessToken(token : String?){
@@ -73,4 +93,5 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
         val viewModelFactory = Injection.provideViewModelFactory()
         return ViewModelProvider(this, viewModelFactory)[StringViewModel::class.java]
     }
+
 }
