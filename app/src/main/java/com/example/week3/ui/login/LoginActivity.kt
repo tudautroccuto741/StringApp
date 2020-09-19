@@ -29,7 +29,6 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
         bt_login_email.setOnClickListener(this)
         ib_login_back.setOnClickListener(this)
         loginViewModel = viewModel()
-        bindViewModel()
     }
 
     override fun onClick(view: View?) {
@@ -51,20 +50,24 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
         ed_login_email_password_edittext.transformationMethod = PasswordTransformationMethod.getInstance()
     }
 
-    fun logIn(){
-        if(tv_login_email_emailname.text.isNullOrBlank() || tv_login_email_password.text.isNullOrBlank())
+    private fun logIn(){
+        if(!ed_login_email_emailname_edittext.text.isNullOrBlank() || !ed_login_email_password_edittext.text.isNullOrBlank())
         {
             FirebaseInstanceId.getInstance().instanceId
                 .addOnCompleteListener(OnCompleteListener { task ->
-                    if (task.isSuccessful)
+                    if (!task.isSuccessful)
                     {
                         Log.w("failed", task.exception)
                         return@OnCompleteListener
                     }
-                    val email : String = ed_login_email_emailname_edittext.text.toString()
-                    val password :String = ed_login_email_password_edittext.text.toString()
-                    val token: String = task.result?.token.toString()
-                    loginViewModel.getLoginIf(email, password, token)
+                    else{
+                        val email : String = ed_login_email_emailname_edittext.text.toString()
+                        val password :String = ed_login_email_password_edittext.text.toString()
+                        val token: String = task.result?.token.toString()
+                        loginViewModel.getLoginIf(email, password, token)
+                        bindViewModel()
+                    }
+
                 })
         }
     }
@@ -93,5 +96,7 @@ class LoginActivity : AppCompatActivity(), View.OnClickListener{
         val viewModelFactory = Injection.provideViewModelFactory()
         return ViewModelProvider(this, viewModelFactory)[StringViewModel::class.java]
     }
+
+
 
 }
